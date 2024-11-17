@@ -1,40 +1,54 @@
-local tasks = require("makefile_nvim.tasks")
-local ui = require("makefile_nvim.ui")
-
 local M = {}
 
-function M.setup()
-  vim.api.nvim_create_user_command("MakefileUI", function()
-    -- Create the general border and the two inner splits
-    local task_buf, log_buf, task_win, log_win = ui.create_ui()
+-- Function to create the UI layout
+function M.create_ui()
+  -- Create two vertical splits for task list and logs
+  vim.cmd("vsplit") -- Create the vertical split for tasks
+  local task_buf = vim.api.nvim_get_current_buf()
 
-    -- Fetch and display tasks
-    local makefile_tasks = tasks.get_tasks()
-    if #makefile_tasks == 0 then
-      vim.notify("No tasks found in Makefile.", vim.log.levels.WARN)
-      return
-    end
-    ui.populate_tasks(task_buf, makefile_tasks)
+  -- Set up the task list buffer
+  vim.api.nvim_buf_set_name(task_buf, "Makefile Tasks")
+  vim.api.nvim_buf_set_option(task_buf, 'modifiable', false) -- Make it read-only
 
-    -- Keymap to quit the UI with 'q' or 'ESC'
-    vim.api.nvim_buf_set_keymap(task_buf, "n", "q", ":q<CR>", { noremap = true, silent = true })
-    vim.api.nvim_buf_set_keymap(log_buf, "n", "q", ":q<CR>", { noremap = true, silent = true })
-    vim.api.nvim_buf_set_keymap(task_buf, "n", "<ESC>", ":q<CR>", { noremap = true, silent = true })
-    vim.api.nvim_buf_set_keymap(log_buf, "n", "<ESC>", ":q<CR>", { noremap = true, silent = true })
+  -- Create the log window on the right
+  vim.cmd("vsplit") -- Create the vertical split for logs
+  local log_buf = vim.api.nvim_get_current_buf()
+  vim.api.nvim_buf_set_name(log_buf, "Task Logs")
+  vim.api.nvim_buf_set_option(log_buf, 'modifiable', true) -- Allow modifying log buffer
 
-    -- Keymap to execute a task
-    vim.api.nvim_buf_set_keymap(task_buf, "n", "<CR>", "", {
-      callback = function()
-        local line = vim.api.nvim_get_current_line()
-        local task_name = line:match("^(%w+)")
-        if task_name then
-          tasks.run_task(task_name, function(log_line)
-            ui.display_logs(log_buf, log_line)
-          end)
-        end
-      end,
-    })
-  end, {})
+  -- Set borders for the windows (left and right)
+  vim.api.nvim_win_set_option(0, "winborder", "both") -- For the current window (task list)
+  vim.api.nvim_win_set_option(1, "winborder", "both") -- For the log window
+
+  -- Focus the cursor on the task list window
+  vim.api.nvim_set_current_win(task_buf)
+  vim.api.nvim_win_set_cursor(task_buf, { 1, 0 }) -- Move the cursor to the first line in task list
+
+  -- Return buffers for later use
+  return task_buf, log_buf
+end
+
+-- Function to populate tasks in the task buffer
+function M.populate_tasks(task_buf, tasks)
+  local lines = {}
+
+  -- Iterate over the tasks and format them as strings
+  for _, task in ipairs(tasks) do
+    -- Adjust the space between task name and description (using 20 spaces instead of 30)
+    local task_line = string.format("%-20s  %s", task.name, task.description)
+    table.insert(lines, task_line)
+  end
+
+  -- Set the lines in the task buffer
+  vim.api.nvim_buf_set_lines(task_buf, 0, -1, false, lines)
+end
+
+-- Function to display logs in the log buffer
+function M.display_logs(log_buf, log_line)
+  -- Display log message in the log buffer
+  local current_lines = vim.api.nvim_buf_get_lines(log_buf, 0, -1, false)
+  table.insert(current_lines, log_line)
+  vim.api.nvim_buf_set_lines(log_buf, 0, -1, false, current_lines)
 end
 
 return M
