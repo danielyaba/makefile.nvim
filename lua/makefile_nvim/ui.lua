@@ -1,12 +1,13 @@
+-- lua/makefile_nvim/ui.lua
 local M = {}
 
 -- Function to create the UI with two splits and borders
-M.create_ui = function()
+M.show_makefile_ui = function()
   -- Create a new buffer for tasks and logs
   local task_buf = vim.api.nvim_create_buf(false, true)
   local log_buf = vim.api.nvim_create_buf(false, true)
 
-  -- Create the general window
+  -- Create the general window with borders
   local general_win = vim.api.nvim_open_win(task_buf, true, {
     relative = "editor",
     width = vim.o.columns,
@@ -41,14 +42,13 @@ M.create_ui = function()
 end
 
 -- Function to populate the task list in the left split
-function M.populate_tasks(task_buf, tasks)
-  -- Ensure tasks is a list of strings
+M.populate_tasks = function(task_buf, tasks)
   local lines = {}
 
   -- Iterate over the tasks and format them as strings
   for _, task in ipairs(tasks) do
-    -- Make sure each task is a string, including its description
-    local task_line = string.format("%-30s  %s", task.name, task.description)
+    -- Adjust the space between task name and description (using 20 spaces instead of 30)
+    local task_line = string.format("%-20s  %s", task.name, task.description)
     table.insert(lines, task_line)
   end
 

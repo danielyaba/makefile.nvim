@@ -1,9 +1,11 @@
+-- lua/makefile_nvim/init.lua
 local M = {}
 
 -- Function to set up the plugin (called from the plugin configuration)
 function M.setup()
   -- Define commands, keymaps, or anything needed for plugin setup
   vim.api.nvim_create_user_command("MakefileUI", function()
+    -- Ensure the UI module is correctly required and the function is available
     require("makefile_nvim.ui").show_makefile_ui()
   end, {})
 end
