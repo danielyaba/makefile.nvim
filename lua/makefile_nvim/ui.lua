@@ -1,35 +1,55 @@
 local M = {}
 
--- Function to create the UI
+-- Function to create the UI with two splits and borders
 M.create_ui = function()
-  -- Create a vertical split for tasks and a horizontal split for logs
-  vim.cmd("vsplit") -- Create vertical split for task list
-  local task_buf = vim.api.nvim_get_current_buf()
-  vim.cmd("split")  -- Create horizontal split for logs
-  local log_buf = vim.api.nvim_get_current_buf()
+  -- Create a new buffer for tasks and logs
+  local task_buf = vim.api.nvim_create_buf(false, true)
+  local log_buf = vim.api.nvim_create_buf(false, true)
 
-  -- Resize the splits to maximize them
-  vim.cmd("wincmd _") -- Maximize the log window vertically
-  vim.cmd("wincmd |") -- Maximize the task window horizontally
+  -- Create the general window
+  local general_win = vim.api.nvim_open_win(task_buf, true, {
+    relative = "editor",
+    width = vim.o.columns,
+    height = vim.o.lines,
+    row = 0,
+    col = 0,
+    border = "single", -- Single border around the whole window
+  })
 
-  -- Set the task buffer to be the left window and the log buffer to be the right window
-  return task_buf, log_buf
+  -- Create the task window (left split)
+  local task_win = vim.api.nvim_open_win(task_buf, true, {
+    relative = "editor",
+    width = math.floor(vim.o.columns / 2), -- Half the screen width
+    height = vim.o.lines - 2,              -- Reduce height for the border
+    row = 0,
+    col = 0,
+    border = "double", -- Double border for the tasks window
+  })
+
+  -- Create the log window (right split)
+  local log_win = vim.api.nvim_open_win(log_buf, true, {
+    relative = "editor",
+    width = math.floor(vim.o.columns / 2), -- Half the screen width
+    height = vim.o.lines - 2,              -- Same height as tasks window
+    row = 0,
+    col = math.floor(vim.o.columns / 2),   -- Position it to the right
+    border = "double",                     -- Double border for the logs window
+  })
+
+  -- Return the task and log buffers and windows for future configuration
+  return task_buf, log_buf, task_win, log_win
 end
 
--- Function to populate tasks in the task buffer
+-- Function to populate the task list in the left split
 M.populate_tasks = function(buf, tasks)
-  vim.api.nvim_buf_set_lines(buf, 0, -1, false, {})
-  for _, task in ipairs(tasks) do
-    vim.api.nvim_buf_set_lines(buf, -1, -1, false, { task.name .. " - " .. task.description })
-  end
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, tasks)
 end
 
--- Function to display logs in the log buffer
-
+-- Function to display the logs in the right split
 M.display_logs = function(buf, log_line)
-  vim.schedule(function() -- Schedule this update to avoid the callback issue
+  vim.schedule(function()
     vim.api.nvim_buf_set_lines(buf, -1, -1, false, { log_line })
-    vim.cmd("normal! G")  -- Scroll to the bottom of the log window
+    vim.cmd("normal! G") -- Scroll to the bottom of the log window
   end)
 end
 
