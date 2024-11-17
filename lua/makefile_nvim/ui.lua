@@ -1,36 +1,33 @@
 local M = {}
 
--- Create split windows for tasks and logs
-function M.create_ui()
-  vim.cmd("vsplit")
-  local task_buf = vim.api.nvim_create_buf(false, true)
-  local log_buf = vim.api.nvim_create_buf(false, true)
+-- Function to create the UI
+M.create_ui = function()
+  -- Create a vertical split for tasks and a horizontal split for logs
+  vim.cmd("vsplit") -- Create vertical split for task list
+  local task_buf = vim.api.nvim_get_current_buf()
+  vim.cmd("split")  -- Create horizontal split for logs
+  local log_buf = vim.api.nvim_get_current_buf()
 
-  local win_task = vim.api.nvim_get_current_win()
-  vim.api.nvim_win_set_buf(win_task, task_buf)
+  -- Resize the splits to maximize them
+  vim.cmd("wincmd _") -- Maximize the log window vertically
+  vim.cmd("wincmd |") -- Maximize the task window horizontally
 
-  vim.cmd("wincmd l")
-  local win_log = vim.api.nvim_get_current_win()
-  vim.api.nvim_win_set_buf(win_log, log_buf)
-
-  vim.api.nvim_buf_set_option(task_buf, "filetype", "makefile_nvim_tasks")
-  vim.api.nvim_buf_set_option(log_buf, "filetype", "makefile_nvim_logs")
-
-  return task_buf, log_buf, win_task, win_log
+  -- Set the task buffer to be the left window and the log buffer to be the right window
+  return task_buf, log_buf
 end
 
--- Populate task list with descriptions
-function M.populate_tasks(task_buf, tasks)
-  local lines = {}
+-- Function to populate tasks in the task buffer
+M.populate_tasks = function(buf, tasks)
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, {})
   for _, task in ipairs(tasks) do
-    table.insert(lines, string.format("%-15s %s", task.name, task.description))
+    vim.api.nvim_buf_set_lines(buf, -1, -1, false, { task.name .. " - " .. task.description })
   end
-  vim.api.nvim_buf_set_lines(task_buf, 0, -1, false, lines)
 end
 
--- Append log lines to the log buffer
-function M.display_logs(log_buf, log_line)
-  vim.api.nvim_buf_set_lines(log_buf, -1, -1, false, { log_line })
+-- Function to display logs in the log buffer
+M.display_logs = function(buf, log_line)
+  vim.api.nvim_buf_set_lines(buf, -1, -1, false, { log_line })
+  vim.cmd("normal! G") -- Scroll to the bottom of the log window
 end
 
 return M

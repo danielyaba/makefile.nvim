@@ -5,7 +5,12 @@ local M = {}
 
 function M.setup()
   vim.api.nvim_create_user_command("MakefileUI", function()
-    -- Create the UI with task and log buffers
+    -- Set up the full window layout
+    vim.cmd("tabnew")   -- Open a new tab to ensure we're working in a clean environment
+    vim.cmd("wincmd _") -- Maximize the window vertically
+    vim.cmd("wincmd |") -- Maximize the window horizontally
+
+    -- Create the two splits
     local task_buf, log_buf = ui.create_ui()
 
     -- Fetch and display tasks
