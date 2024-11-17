@@ -1,5 +1,13 @@
 local M = {}
 
+-- Function to set up the plugin (called from the plugin configuration)
+function M.setup()
+  -- Define commands, keymaps, or anything needed for plugin setup
+  vim.api.nvim_create_user_command("MakefileUI", function()
+    require("makefile_nvim.ui").show_makefile_ui()
+  end, {})
+end
+
 -- Function to create the UI layout
 function M.create_ui()
   -- Create two vertical splits for task list and logs
