@@ -5,6 +5,7 @@ local M = {}
 
 function M.setup()
   vim.api.nvim_create_user_command("MakefileUI", function()
+    -- Create the UI with task and log buffers
     local task_buf, log_buf = ui.create_ui()
 
     -- Fetch and display tasks
@@ -15,19 +16,26 @@ function M.setup()
     end
     ui.populate_tasks(task_buf, makefile_tasks)
 
-    -- Keymap to execute a task
+    -- Set keymap for task execution in the tasks buffer
     vim.api.nvim_buf_set_keymap(task_buf, "n", "<CR>", "", {
+      noremap = true,
+      silent = true,
       callback = function()
         local line = vim.api.nvim_get_current_line()
         local task_name = line:match("^(%w+)")
         if task_name then
+          vim.notify("Running task: " .. task_name, vim.log.levels.INFO)
           tasks.run_task(task_name, function(log_line)
             ui.display_logs(log_buf, log_line)
           end)
+        else
+          vim.notify("Invalid task selection.", vim.log.levels.ERROR)
         end
       end,
     })
-  end, {})
+  end, {
+    desc = "Open the Makefile UI for task execution",
+  })
 end
 
 return M
