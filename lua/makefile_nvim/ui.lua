@@ -41,8 +41,19 @@ M.create_ui = function()
 end
 
 -- Function to populate the task list in the left split
-M.populate_tasks = function(buf, tasks)
-  vim.api.nvim_buf_set_lines(buf, 0, -1, false, tasks)
+function M.populate_tasks(task_buf, tasks)
+  -- Ensure tasks is a list of strings
+  local lines = {}
+
+  -- Iterate over the tasks and format them as strings
+  for _, task in ipairs(tasks) do
+    -- Make sure each task is a string, including its description
+    local task_line = string.format("%-30s  %s", task.name, task.description)
+    table.insert(lines, task_line)
+  end
+
+  -- Set the lines in the task buffer
+  vim.api.nvim_buf_set_lines(task_buf, 0, -1, false, lines)
 end
 
 -- Function to display the logs in the right split
