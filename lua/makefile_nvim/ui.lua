@@ -25,9 +25,12 @@ M.populate_tasks = function(buf, tasks)
 end
 
 -- Function to display logs in the log buffer
+
 M.display_logs = function(buf, log_line)
-  vim.api.nvim_buf_set_lines(buf, -1, -1, false, { log_line })
-  vim.cmd("normal! G") -- Scroll to the bottom of the log window
+  vim.schedule(function() -- Schedule this update to avoid the callback issue
+    vim.api.nvim_buf_set_lines(buf, -1, -1, false, { log_line })
+    vim.cmd("normal! G")  -- Scroll to the bottom of the log window
+  end)
 end
 
 return M
